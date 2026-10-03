@@ -27,9 +27,16 @@ class Sale(Base):
     qty: Mapped[int] = mapped_column(Integer)
     sold_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+# 补货单生命周期：生成即 active；verify 后变 verified（已核销，禁止作废）；
+# void 仅对未核销单生效。满仓与汇总只引用最新一张非 void 单。
+ORDER_ACTIVE = "active"
+ORDER_VERIFIED = "verified"
+ORDER_VOID = "void"
+
 class RefillOrder(Base):
     __tablename__ = "refill_orders"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     location_id: Mapped[int] = mapped_column(ForeignKey("locations.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     lines_json: Mapped[str] = mapped_column(Text, default="[]")
+    status: Mapped[str] = mapped_column(String(16), default=ORDER_ACTIVE, server_default=ORDER_ACTIVE)
